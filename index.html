@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Taisen Docs — Advanced</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.1.0/docx.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+  <!-- TOP MENUBAR -->
+  <div class="menubar" role="menubar" aria-label="Main menu">
+    <div class="menubar-left">
+      <div class="menu" data-menu="file" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false">
+        File
+        <div class="menu-dropdown" role="menu" data-dropdown="file">
+          <button role="menuitem" onclick="newDoc()">New</button>
+          <button role="menuitem" onclick="openDoc()">Open</button>
+          <button role="menuitem" onclick="saveDoc()">Save</button>
+          <div class="divider"></div>
+          <button role="menuitem" onclick="exportDocx()">Download .docx</button>
+          <button role="menuitem" onclick="exportPdf()">Download .pdf</button>
+          <button role="menuitem" onclick="exportTxt()">Download .txt</button>
+          <div class="divider"></div>
+          <button role="menuitem" onclick="printDoc()">Print</button>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="edit" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false">
+        Edit
+        <div class="menu-dropdown" role="menu" data-dropdown="edit">
+          <button role="menuitem" onclick="doCmd('undo')">Undo</button>
+          <button role="menuitem" onclick="doCmd('redo')">Redo</button>
+          <div class="divider"></div>
+          <button role="menuitem" onclick="openFindReplace()">Find & Replace</button>
+          <button role="menuitem" onclick="openVersionHistory()">Version history</button>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="view" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false">
+        View
+        <div class="menu-dropdown" role="menu" data-dropdown="view">
+          <button role="menuitem" onclick="togglePrintLayout()">Toggle Print Layout</button>
+          <button role="menuitem" onclick="toggleTheme()">Toggle Dark</button>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="insert" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false">
+        Insert
+        <div class="menu-dropdown" role="menu" data-dropdown="insert">
+          <button role="menuitem" onclick="triggerImage()">Image</button>
+          <button role="menuitem" onclick="insertTablePrompt()">Table</button>
+          <button role="menuitem" onclick="insertHorizontalRule()">Horizontal rule</button>
+          <button role="menuitem" onclick="insertPageBreak()">Page break</button>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="format" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false">
+        Format
+        <div class="menu-dropdown" role="menu" data-dropdown="format">
+          <button role="menuitem" onclick="formatBlock('H1')">Heading 1</button>
+          <button role="menuitem" onclick="formatBlock('H2')">Heading 2</button>
+          <button role="menuitem" onclick="formatBlock('P')">Paragraph</button>
+          <button role="menuitem" onclick="doCmd('removeFormat')">Clear formatting</button>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="tools" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false">
+        Tools
+        <div class="menu-dropdown" role="menu" data-dropdown="tools">
+          <button role="menuitem" onclick="openCommentsPanel()">Comments</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="menubar-right">
+      <div class="doc-title" contenteditable="true" id="documentTitle" aria-label="Document title">Untitled document</div>
+      <div class="user-bubble" title="You">N</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar" id="toolbar" role="toolbar" aria-label="Editor toolbar">
+    <select id="fontFamily" title="Font family" aria-label="Select font family">
+      <option>Arial</option><option>Georgia</option><option>Times New Roman</option><option>Verdana</option><option>Courier New</option>
+    </select>
+    <select id="fontSize" title="Font size" aria-label="Select font size">
+      <option value="1">10px</option><option value="2">12px</option><option value="3" selected>14px</option><option value="4">16px</option><option value="5">18px</option><option value="6">24px</option><option value="7">32px</option>
+    </select>
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <button onclick="doCmd('bold')" title="Bold" aria-label="Bold"><b>B</b></button>
+    <button onclick="doCmd('italic')" title="Italic" aria-label="Italic"><i>I</i></button>
+    <button onclick="doCmd('underline')" title="Underline" aria-label="Underline"><u>U</u></button>
+    <button onclick="doCmd('strikeThrough')" title="Strike" aria-label="Strike">S̶</button>
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <button onclick="doCmd('insertUnorderedList')" title="Bulleted list" aria-label="Bulleted list">•</button>
+    <button onclick="doCmd('insertOrderedList')" title="Numbered list" aria-label="Numbered list">1.</button>
+    <button onclick="doCmd('outdent')" title="Decrease indent" aria-label="Decrease indent">⇤</button>
+    <button onclick="doCmd('indent')" title="Increase indent" aria-label="Increase indent">⇥</button>
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <button onclick="doCmd('justifyLeft')" title="Align left" aria-label="Align left">⟵</button>
+    <button onclick="doCmd('justifyCenter')" title="Center" aria-label="Center">⇆</button>
+    <button onclick="doCmd('justifyRight')" title="Align right" aria-label="Align right">⟶</button>
+    <button onclick="doCmd('justifyFull')" title="Justify" aria-label="Justify">☰</button>
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <input type="color" id="textColor" title="Text color" aria-label="Text color">
+    <input type="color" id="highlightColor" title="Highlight color" aria-label="Highlight color">
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <button onclick="insertLink()" title="Insert link" aria-label="Insert link">🔗</button>
+    <button onclick="triggerImage()" title="Insert image" aria-label="Insert image">🖼</button>
+    <button onclick="insertTablePrompt()" title="Insert table" aria-label="Insert table">▦</button>
+    <button onclick="addCommentToSelection()" title="Add comment" aria-label="Add comment">💬</button>
+    <button id="suggestToggle" onclick="toggleSuggestMode()" title="Suggest edits" aria-pressed="false">✍️</button>
+
+    <div class="toolbar-right">
+      <select id="zoom" title="Zoom" aria-label="Zoom">
+        <option value="1">100%</option><option value="0.9">90%</option><option value="0.8">80%</option><option value="1.25">125%</option><option value="1.5">150%</option>
+      </select>
+      <button onclick="saveDoc()" class="btn-success">Save</button>
+    </div>
+  </div>
+
+  <!-- MAIN: page canvas + comments -->
+  <div class="main-wrap">
+    <div class="page-wrap">
+      <div id="editor" class="page" contenteditable="true" spellcheck="true" aria-label="Document editor">
+        <h1 style="text-align:center">Title</h1>
+        <p>Start typing here...</p>
+      </div>
+    </div>
+
+    <aside class="comments-panel" id="commentsPanel" aria-labelledby="Comments">
+      <div class="comments-header">
+        <strong>Comments</strong>
+        <button onclick="closeCommentsPanel()">✕</button>
+      </div>
+      <div id="commentsList"></div>
+      <div style="padding:8px;border-top:1px solid #eee">
+        <input id="newCommentText" placeholder="Add comment..." />
+        <button onclick="addCommentFromPanel()">Add</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div id="wordCount" class="muted">Words: 0</div>
+    <div id="charCount" class="muted">Chars: 0</div>
+    <div id="savedAt" class="muted">Not saved</div>
+    <div class="flex-gap"></div>
+    <div><select id="pageSelector"><option>Page 1</option></select></div>
+  </div>
+
+  <!-- MODALS & HIDDEN INPUTS -->
+  <div id="findModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Find & Replace</h3>
+      <label>Find: <input id="findInput" type="text"></label>
+      <label>Replace: <input id="replaceInput" type="text"></label>
+      <div class="modal-actions">
+        <button onclick="findNext()">Find Next</button>
+        <button onclick="replaceOne()">Replace</button>
+        <button onclick="replaceAll()">Replace All</button>
+        <button onclick="closeFindReplace()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="versionModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Version history</h3>
+      <div id="versionsList" style="max-height:300px;overflow:auto"></div>
+      <div class="modal-actions"><button onclick="closeVersionHistory()">Close</button></div>
+    </div>
+  </div>
+
+  <input id="imgInput" type="file" accept="image/*" style="display:none" />
+  <script src="script.js"></script>
+</body>
+</html>
