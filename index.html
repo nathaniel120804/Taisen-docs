@@ -3,18 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Taisen Docs — Advanced</title>
+  <title>Offline Docs — Taisen Editor</title>
 
-  <!-- Styles -->
+  <!-- App styles -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Exports -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.1.0/docx.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-
   <!-- TOP MENUBAR -->
   <div class="menubar" role="menubar" aria-label="Main menu">
     <div class="menubar-left">
@@ -22,7 +16,7 @@
         File
         <div class="menu-dropdown" role="menu" data-dropdown="file">
           <button role="menuitem" onclick="newDoc()">New</button>
-          <button role="menuitem" onclick="openDoc()">Open</button>
+          <button role="menuitem" onclick="openLocal()">Open</button>
           <button role="menuitem" onclick="saveDoc()">Save</button>
           <div class="divider"></div>
           <button role="menuitem" onclick="exportDocx()">Download .docx</button>
@@ -76,13 +70,14 @@
         Tools
         <div class="menu-dropdown" role="menu" data-dropdown="tools">
           <button role="menuitem" onclick="openCommentsPanel()">Comments</button>
+          <button role="menuitem" onclick="toggleSuggestMode()">Suggest edits</button>
         </div>
       </div>
     </div>
 
     <div class="menubar-right">
-      <div class="doc-title" contenteditable="true" id="documentTitle" aria-label="Document title">Untitled document</div>
-      <div class="user-bubble" title="You">N</div>
+      <div class="doc-title" id="documentTitle" contenteditable="true" aria-label="Document title">Untitled document</div>
+      <div class="user-bubble">N</div>
     </div>
   </div>
 
@@ -92,7 +87,8 @@
       <option>Arial</option><option>Georgia</option><option>Times New Roman</option><option>Verdana</option><option>Courier New</option>
     </select>
     <select id="fontSize" title="Font size" aria-label="Select font size">
-      <option value="1">10px</option><option value="2">12px</option><option value="3" selected>14px</option><option value="4">16px</option><option value="5">18px</option><option value="6">24px</option><option value="7">32px</option>
+      <option value="1">10px</option><option value="2">12px</option><option value="3" selected>14px</option>
+      <option value="4">16px</option><option value="5">18px</option><option value="6">24px</option><option value="7">32px</option>
     </select>
 
     <div class="sep" aria-hidden="true"></div>
@@ -104,17 +100,17 @@
 
     <div class="sep" aria-hidden="true"></div>
 
-    <button onclick="doCmd('insertUnorderedList')" title="Bulleted list" aria-label="Bulleted list">•</button>
-    <button onclick="doCmd('insertOrderedList')" title="Numbered list" aria-label="Numbered list">1.</button>
-    <button onclick="doCmd('outdent')" title="Decrease indent" aria-label="Decrease indent">⇤</button>
-    <button onclick="doCmd('indent')" title="Increase indent" aria-label="Increase indent">⇥</button>
+    <button onclick="doCmd('insertUnorderedList')" title="Bulleted list">•</button>
+    <button onclick="doCmd('insertOrderedList')" title="Numbered list">1.</button>
+    <button onclick="doCmd('outdent')" title="Outdent">⇤</button>
+    <button onclick="doCmd('indent')" title="Indent">⇥</button>
 
     <div class="sep" aria-hidden="true"></div>
 
-    <button onclick="doCmd('justifyLeft')" title="Align left" aria-label="Align left">⟵</button>
-    <button onclick="doCmd('justifyCenter')" title="Center" aria-label="Center">⇆</button>
-    <button onclick="doCmd('justifyRight')" title="Align right" aria-label="Align right">⟶</button>
-    <button onclick="doCmd('justifyFull')" title="Justify" aria-label="Justify">☰</button>
+    <button onclick="doCmd('justifyLeft')" title="Align left">⟵</button>
+    <button onclick="doCmd('justifyCenter')" title="Center">⇆</button>
+    <button onclick="doCmd('justifyRight')" title="Align right">⟶</button>
+    <button onclick="doCmd('justifyFull')" title="Justify">☰</button>
 
     <div class="sep" aria-hidden="true"></div>
 
@@ -192,6 +188,11 @@
   </div>
 
   <input id="imgInput" type="file" accept="image/*" style="display:none" />
+  <!-- local libs (offline) -->
+  <script src="libs/FileSaver.min.js"></script>
+  <script src="libs/docx.umd.min.js"></script>
+  <script src="libs/html2pdf.bundle.min.js"></script>
+
   <script src="script.js"></script>
 </body>
 </html>

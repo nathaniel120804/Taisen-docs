@@ -21,7 +21,6 @@ body{margin:0;background:#f1f3f4;color:var(--text-dark)}
 .menu{position:relative;padding:6px 10px;border-radius:6px;cursor:default;margin-right:6px;display:inline-block}
 .menu:focus { outline: 2px solid rgba(59,130,246,0.25); }
 .menu-dropdown{position:absolute;left:0;top:calc(100% + 6px);background:white;border:1px solid rgba(0,0,0,0.08);box-shadow:0 6px 20px rgba(0,0,0,0.06);display:none;padding:8px;border-radius:8px;z-index:40;min-width:180px}
-.menu:hover .menu-dropdown{display:block} /* fallback */
 .menu-dropdown button{display:block;padding:8px 10px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer}
 .menu-dropdown .divider{height:1px;background:#eee;margin:6px 0}
 .menubar-right{display:flex;align-items:center;gap:12px}

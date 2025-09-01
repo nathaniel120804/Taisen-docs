@@ -238,30 +238,74 @@ function restoreVersion(idx){
 }
 
 /* ---------- Exports ---------- */
-async function exportToDocx() {
-  const { Document, Packer, Paragraph } = window.docx;
+function exportDocx(){
+  // using docx library (docx.umd)
+  try {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = window.docx;
+    // Convert HTML nodes to simple docx paragraphs (basic mapping)
+    // This is a best-effort exporter for plain paragraphs, bold, italic, underline and headings.
+    const doc = new Document();
+    const nodes = Array.from(editor.childNodes);
+    const children = [];
 
-  // Get editor content
-  const editorContent = document.getElementById("editor").innerText;
+    function nodeToParagraph(node) {
+      // text node
+      if(node.nodeType === Node.TEXT_NODE) {
+        return new Paragraph({ children: [ new TextRun(node.nodeValue) ] });
+      }
+      if(node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName.toLowerCase();
+        if(tag.startsWith('h1')) {
+          return new Paragraph({ heading: HeadingLevel.HEADING_1, children: [ new TextRun(node.textContent) ] });
+        }
+        if(tag.startsWith('h2')) {
+          return new Paragraph({ heading: HeadingLevel.HEADING_2, children: [ new TextRun(node.textContent) ] });
+        }
+        if(tag === 'p' || tag === 'div') {
+          const runs = [];
+          node.childNodes.forEach(ch => {
+            if(ch.nodeType === Node.TEXT_NODE) runs.push(new TextRun(ch.nodeValue));
+            else if(ch.nodeType === Node.ELEMENT_NODE) {
+              const t = ch.tagName.toLowerCase();
+              const txt = ch.textContent || '';
+              let run = new TextRun(txt);
+              if(ch.style && ch.style.fontWeight === 'bold') run = run.bold();
+              if(ch.style && ch.style.fontStyle === 'italic') run = run.italic();
+              if(ch.tagName.toLowerCase()==='b' || t==='strong') run = run.bold();
+              if(t==='i' || t==='em') run = run.italic();
+              if(t==='u') run = run.underline();
+              runs.push(run);
+            }
+          });
+          return new Paragraph({ children: runs });
+        }
+        if(tag === 'ul' || tag === 'ol') {
+          const items = [];
+          node.querySelectorAll('li').forEach(li => {
+            const p = new Paragraph({ children: [ new TextRun(li.textContent) ] });
+            items.push(p);
+          });
+          return items; // return array of paragraphs
+        }
+        // fallback
+        return new Paragraph({ children: [ new TextRun(node.textContent || '') ] });
+      }
+      return null;
+    }
 
-  // Create DOCX
-  const doc = new Document({
-    sections: [
-      {
-        properties: {},
-        children: [new Paragraph(editorContent)],
-      },
-    ],
-  });
+    nodes.forEach(n => {
+      const res = nodeToParagraph(n);
+      if(Array.isArray(res)) res.forEach(r=>doc.addSection({ children: [r] }));
+      else if(res) doc.addSection({ children: [res] });
+    });
 
-  // Generate and download
-  const blob = await Packer.toBlob(doc);
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "document.docx";
-  link.click();
+    Packer.toBlob(doc).then(blob => {
+      saveAs(blob, 'document.docx');
+    }).catch(err => { alert('DOCX export failed: '+err); });
+  } catch(e) {
+    alert('docx library not loaded or export failed. Check libs/docx.umd.min.js presence.');
+  }
 }
-
 function exportTxt(){
   const text = editor.innerText || editor.textContent || '';
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -326,12 +370,48 @@ document.addEventListener('keydown', (e) => {
   if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') { e.preventDefault(); doCmd('italic'); }
 });
 
+/* ---------- local open/save (files) ---------- */
+function openLocal(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.html,.txt';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = event => {
+      if(file.name.endsWith('.txt')) editor.innerText = event.target.result;
+      else editor.innerHTML = event.target.result;
+      updateCounts();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* ---------- small helpers ---------- */
+function newDoc(){ if(confirm('Discard current content and create new document?')) { editor.innerHTML = '<p></p>'; saveDoc(); } }
+function escapeHtml(s){ return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeHtmlAttr(s){ return (s+'').replace(/"/g,'&quot;').replace(/'/g,"&#39;"); }
+
+/* ---------- comments rendering ---------- */
+function persistComments(){ localStorage.setItem('taisen_comments', JSON.stringify(comments)); }
+function renderComments(){
+  commentsList.innerHTML = '';
+  comments.forEach(c => {
+    const d = document.createElement('div'); d.className = 'comment-item';
+    d.innerHTML = `<div><strong>Comment</strong> <small class="muted">${new Date(c.ts).toLocaleString()}</small></div>
+      <div style="margin:6px 0">${escapeHtml(c.text)}</div>
+      <div><button onclick="resolveComment('${c.id}')">Resolve</button></div>`;
+    commentsList.appendChild(d);
+  });
+}
+function resolveComment(id){
+  comments = comments.map(c => c.id===id ? {...c, resolved:true} : c);
+  persistComments(); renderComments();
+}
+
 /* ---------- safe unload ---------- */
 let initial = editor.innerHTML;
 window.addEventListener('beforeunload', (e) => {
   if (editor.innerHTML !== initial) { e.preventDefault(); e.returnValue = ''; }
 });
-
-/* ---------- tiny helpers ---------- */
-function escapeHtml(s){ return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escapeHtmlAttr(s){ return (s+'').replace(/"/g,'&quot;').replace(/'/g,"&#39;"); }
